@@ -1,0 +1,234 @@
+<div class="abono-form-container">
+  <div class="form-wrapper">
+    <!-- Header -->
+    <div class="form-header">
+      <button type="button" class="back-btn" (click)="goBack()">
+        <span class="icon">←</span>
+        Volver
+      </button>
+      <div class="header-info">
+        <h1>Registrar Nuevo Abono</h1>
+        <p>Registra un pago realizado por el cliente</p>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div class="error-alert" *ngIf="error">
+      <span class="icon">⚠️</span>
+      {{ error }}
+    </div>
+
+    <!-- Success Alert -->
+    <div class="success-alert" *ngIf="successMessage">
+      <span class="icon">✅</span>
+      {{ successMessage }}
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="abonoForm" (ngSubmit)="onSubmit()" class="abono-form">
+      
+      <!-- Sección Empeño -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">💰</div>
+          <div class="section-info">
+            <h2>Seleccionar Empeño</h2>
+            <p>Elige el empeño al que corresponde este abono</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="form-label">Empeño *</label>
+            <select 
+              formControlName="empeno_id" 
+              class="form-select"
+              [class.invalid]="isFieldInvalid('empeno_id')"
+              (change)="onEmpenoChange()"
+            >
+              <option value="">Seleccionar empeño...</option>
+              <option *ngFor="let empeno of empenos" [value]="empeno.id">
+                Empeño #{{ empeno.id }} - Cliente ID: {{ empeno.cliente_id }} - {{ formatCurrency(empeno.monto_prestado) }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('empeno_id')">
+              Debe seleccionar un empeño
+            </div>
+          </div>
+        </div>
+
+        <!-- Empeño Info Card -->
+        <div class="empeno-info-card" *ngIf="selectedEmpeno">
+          <div class="empeno-header">
+            <h3>Información del Empeño #{{ selectedEmpeno.id }}</h3>
+            <span class="estado-badge" [class]="'estado-' + selectedEmpeno.estado">
+              {{ selectedEmpeno.estado | titlecase }}
+            </span>
+          </div>
+          
+          <div class="empeno-details">
+            <div class="detail-row">
+              <span class="detail-label">Monto Prestado:</span>
+              <span class="detail-value">{{ formatCurrency(selectedEmpeno.monto_prestado) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Interés ({{ selectedEmpeno.interes_mensual }}%):</span>
+              <span class="detail-value">{{ formatCurrency(calculateInterestAmount()) }}</span>
+            </div>
+            <div class="detail-row total">
+              <span class="detail-label">Total a Pagar:</span>
+              <span class="detail-value">{{ formatCurrency(calculateTotalAmount()) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Fecha Vencimiento:</span>
+              <span class="detail-value" [class.vencido]="isVencido(selectedEmpeno.fecha_vencimiento)">
+                {{ formatDate(selectedEmpeno.fecha_vencimiento) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cliente Info Card -->
+        <div class="cliente-info-card" *ngIf="selectedCliente">
+          <div class="cliente-avatar">
+            {{ selectedCliente.nombre.charAt(0).toUpperCase() }}
+          </div>
+          <div class="cliente-details">
+            <h3>{{ selectedCliente.nombre }}</h3>
+            <p><strong>Documento:</strong> {{ selectedCliente.documento }}</p>
+            <p><strong>Teléfono:</strong> {{ selectedCliente.telefono }}</p>
+            <p><strong>Email:</strong> {{ selectedCliente.correo }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Abono -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">💵</div>
+          <div class="section-info">
+            <h2>Detalles del Abono</h2>
+            <p>Ingresa los datos del pago realizado</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tipo de Abono *</label>
+            <select 
+              formControlName="tipo_abono" 
+              class="form-select"
+              [class.invalid]="isFieldInvalid('tipo_abono')"
+              (change)="onTipoAbonoChange()"
+            >
+              <option *ngFor="let tipo of tiposAbono" [value]="tipo.value">
+                {{ tipo.label }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('tipo_abono')">
+              El tipo de abono es requerido
+            </div>
+            <div class="input-hint">
+              Capital: Pago del monto prestado | Interés: Pago de intereses
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Monto del Abono *</label>
+            <input 
+              type="number" 
+              formControlName="monto"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('monto')"
+              placeholder="Ingrese el monto"
+              min="1"
+              step="1000"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('monto')">
+              El monto es requerido y debe ser mayor a 0
+            </div>
+            <div class="input-hint" *ngIf="selectedEmpeno">
+              <span *ngIf="abonoForm.get('tipo_abono')?.value === 'capital'">
+                Capital sugerido: {{ formatCurrency(selectedEmpeno.monto_prestado) }}
+              </span>
+              <span *ngIf="abonoForm.get('tipo_abono')?.value === 'interes'">
+                Interés sugerido: {{ formatCurrency(calculateInterestAmount()) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fecha del Abono (Opcional)</label>
+            <input 
+              type="date" 
+              formControlName="fecha_abono"
+              class="form-input"
+            />
+            <div class="input-hint">
+              Si no se especifica, se usará la fecha actual
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Observaciones (Opcional)</label>
+            <textarea 
+              formControlName="observaciones"
+              class="form-textarea"
+              placeholder="Notas adicionales sobre el abono..."
+              rows="3"
+            ></textarea>
+            <div class="input-hint">
+              Información adicional sobre el pago
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen del Abono -->
+        <div class="abono-summary" *ngIf="selectedEmpeno && abonoForm.get('monto')?.value">
+          <h3>📊 Resumen del Abono</h3>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="summary-label">Tipo de Abono</span>
+              <span class="summary-value">{{ abonoForm.get('tipo_abono')?.value | titlecase }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Monto del Abono</span>
+              <span class="summary-value">{{ formatCurrency(abonoForm.get('monto')?.value || 0) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Total Adeudado</span>
+              <span class="summary-value">{{ formatCurrency(calculateTotalAmount()) }}</span>
+            </div>
+            <div class="summary-item" [class.paid]="(abonoForm.get('monto')?.value || 0) >= calculateTotalAmount()">
+              <span class="summary-label">Estado Después del Abono</span>
+              <span class="summary-value">
+                {{ (abonoForm.get('monto')?.value || 0) >= calculateTotalAmount() ? 'PAGADO COMPLETO' : 'ABONO PARCIAL' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="goBack()" [disabled]="loading">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="btn-submit" 
+          [disabled]="abonoForm.invalid || loading"
+        >
+          <div class="btn-content" *ngIf="!loading">
+            <span class="icon">💾</span>
+            Registrar Abono
+          </div>
+          <div class="btn-content" *ngIf="loading">
+            <div class="btn-spinner"></div>
+            Registrando...
+          </div>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,148 @@
+<div class="abono-list-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goToDashboard()">
+        <span class="icon">🏠</span>
+        Dashboard
+      </button>
+      <h1 class="title">Gestión de Abonos</h1>
+      <button class="btn-primary" (click)="goToCreate()">
+        <span class="icon">➕</span>
+        Nuevo Abono
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <div class="search-container">
+      <input
+        type="text"
+        placeholder="Buscar por ID, empeño, cliente o documento..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando abonos...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h3>Error al cargar abonos</h3>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadAbonos()">Reintentar</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && filteredAbonos.length === 0 && abonos.length === 0" class="empty-container">
+    <div class="empty-icon">💵</div>
+    <h3>No hay abonos registrados</h3>
+    <p>Comienza registrando el primer abono</p>
+    <button class="btn-primary" (click)="goToCreate()">Registrar Abono</button>
+  </div>
+
+  <!-- No Results State -->
+  <div *ngIf="!loading && !error && filteredAbonos.length === 0 && abonos.length > 0" class="empty-container">
+    <div class="empty-icon">🔍</div>
+    <h3>No se encontraron abonos</h3>
+    <p>Intenta ajustar los filtros de búsqueda</p>
+  </div>
+
+  <!-- Abonos Grid -->
+  <div *ngIf="!loading && !error && filteredAbonos.length > 0" class="abonos-grid">
+    <div *ngFor="let abono of filteredAbonos" class="abono-card">
+      <div class="card-header">
+        <div class="abono-id">Abono #{{ abono.id }}</div>
+        <div class="abono-amount">{{ formatCurrency(abono.monto) }}</div>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-row">
+          <span class="label">Tipo:</span>
+          <span class="value tipo-badge" [ngClass]="getTipoAbonoClass(abono.tipo_abono)">
+            {{ getTipoAbonoLabel(abono.tipo_abono) }}
+          </span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Fecha:</span>
+          <span class="value">{{ formatDate(abono.fecha_abono) }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Empeño:</span>
+          <span class="value empeno-link" (click)="goToEmpeno(abono.empeno_id)">
+            #{{ abono.empeno_id }}
+          </span>
+        </div>
+        
+        <div class="info-row" *ngIf="abono.cliente">
+          <span class="label">Cliente:</span>
+          <span class="value cliente-link" (click)="goToCliente(abono.cliente!.id)">
+            {{ abono.cliente.nombre }}
+          </span>
+        </div>
+        
+        <div class="info-row" *ngIf="abono.cliente">
+          <span class="label">Documento:</span>
+          <span class="value">{{ abono.cliente.documento }}</span>
+        </div>
+        
+        <div class="info-row" *ngIf="abono.empeno">
+          <span class="label">Monto Empeño:</span>
+          <span class="value">{{ formatCurrency(abono.empeno.monto_prestado) }}</span>
+        </div>
+
+        <div class="info-row" *ngIf="abono.observaciones">
+          <span class="label">Observaciones:</span>
+          <span class="value observaciones">{{ abono.observaciones }}</span>
+        </div>
+      </div>
+      
+      <div class="card-actions">
+        <button class="btn-view" (click)="goToEmpeno(abono.empeno_id)" title="Ver empeño">
+          👁️ Ver Empeño
+        </button>
+      </div>
+      
+      <div class="card-footer">
+        <span class="created-date">
+          Registrado: {{ formatDate(abono.createdAt!) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Summary -->
+  <div *ngIf="hasAbonos" class="stats-summary">
+    <div class="stat-item">
+      <span class="stat-number">{{ abonos.length }}</span>
+      <span class="stat-label">Total Abonos</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ abonosHoy }}</span>
+      <span class="stat-label">Hoy</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ abonosCapital }}</span>
+      <span class="stat-label">Capital</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ abonosInteres }}</span>
+      <span class="stat-label">Interés</span>
+    </div>
+    <div class="stat-item total">
+      <span class="stat-number">{{ formatCurrency(totalAbonos) }}</span>
+      <span class="stat-label">Total Recaudado</span>
+    </div>
+  </div>
+</div>

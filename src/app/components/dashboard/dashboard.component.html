@@ -1,0 +1,90 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Dashboard - OroSeguro</h1>
+      <div class="user-info">
+        <span *ngIf="currentUser">Bienvenido, {{ currentUser.username || currentUser.email }}</span>
+        <button class="logout-btn" (click)="logout()">Cerrar Sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="welcome-card">
+      <h2>¡Bienvenido al Sistema OroSeguro!</h2>
+      <p>Has iniciado sesión correctamente.</p>
+      <div class="user-details" *ngIf="currentUser">
+        <h3>Información del Usuario:</h3>
+        <p><strong>Email:</strong> {{ currentUser.email }}</p>
+        <p *ngIf="currentUser.username"><strong>Nombre:</strong> {{ currentUser.username }}</p>
+        <p *ngIf="currentUser.roles && currentUser.roles.length > 0">
+          <strong>Roles:</strong> 
+          <span *ngFor="let role of currentUser.roles; let last = last">
+            {{ role.name }}<span *ngIf="!last">, </span>
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <div class="actions-grid">
+      <div class="action-card">
+        <h3>👥 Clientes</h3>
+        <p>Gestionar información de clientes y sus datos personales</p>
+        <button class="action-btn" (click)="navigateTo('/clientes')">Ver Clientes</button>
+      </div>
+      
+      <div class="action-card">
+        <h3>💰 Empeños</h3>
+        <p>Administrar contratos de empeño y seguimiento de préstamos</p>
+        <button class="action-btn" (click)="navigateTo('/empenos')">Ver Empeños</button>
+      </div>
+      
+      <div class="action-card">
+        <h3>💵 Abonos</h3>
+        <p>Registro de pagos y abonos realizados por los clientes</p>
+        <button class="action-btn" (click)="navigateTo('/abonos')">Ver Abonos</button>
+      </div>
+      
+      <div class="action-card">
+        <h3>💎 Prendas</h3>
+        <p>Catálogo de prendas empeñadas y su estado actual</p>
+        <button class="action-btn" (click)="navigateTo('/prendas')">Ver Prendas</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-section" *ngIf="stats">
+      <h2>Resumen Rápido</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <h3>{{ stats.totalClientes || 0 }}</h3>
+            <p>Clientes Registrados</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-info">
+            <h3>{{ stats.empenosActivos || 0 }}</h3>
+            <p>Empeños Activos</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-info">
+            <h3>{{ stats.empenosVencidos || 0 }}</h3>
+            <p>Empeños Vencidos</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💵</div>
+          <div class="stat-info">
+            <h3>{{ formatCurrency(stats.montoTotal || 0) }}</h3>
+            <p>Monto Total Prestado</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

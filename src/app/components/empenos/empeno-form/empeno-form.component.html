@@ -1,0 +1,268 @@
+<div class="empeno-form-container">
+  <div class="form-wrapper">
+    <!-- Header -->
+    <div class="form-header">
+      <button type="button" class="back-btn" (click)="goBack()">
+        <span class="icon">←</span>
+        Volver
+      </button>
+      <div class="header-info">
+        <h1>{{ isEditMode ? 'Editar Empeño' : 'Crear Nuevo Empeño' }}</h1>
+        <p>{{ isEditMode ? 'Actualiza la información del empeño' : 'Completa los datos para crear un nuevo empeño' }}</p>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div class="error-alert" *ngIf="error">
+      <span class="icon">⚠️</span>
+      {{ error }}
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="empenoForm" (ngSubmit)="onSubmit()" class="empeno-form">
+      
+      <!-- Sección Cliente -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">👤</div>
+          <div class="section-info">
+            <h2>Información del Cliente</h2>
+            <p>Selecciona el cliente para este empeño</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="form-label">Cliente *</label>
+            <select 
+              formControlName="cliente_id" 
+              class="form-select"
+              [class.invalid]="isFieldInvalid('cliente_id')"
+              (change)="onClienteChange()"
+            >
+              <option value="">Seleccionar cliente...</option>
+              <option *ngFor="let cliente of clientes" [value]="cliente.id">
+                {{ cliente.nombre }} - {{ cliente.documento }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('cliente_id')">
+              Debe seleccionar un cliente
+            </div>
+          </div>
+        </div>
+
+        <!-- Cliente Info Card -->
+        <div class="cliente-info-card" *ngIf="selectedCliente">
+          <div class="cliente-avatar">
+            {{ selectedCliente.nombre.charAt(0).toUpperCase() }}
+          </div>
+          <div class="cliente-details">
+            <h3>{{ selectedCliente.nombre }}</h3>
+            <p><strong>Documento:</strong> {{ selectedCliente.documento }}</p>
+            <p><strong>Teléfono:</strong> {{ selectedCliente.telefono }}</p>
+            <p><strong>Email:</strong> {{ selectedCliente.correo }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Prendas -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">💎</div>
+          <div class="section-info">
+            <h2>Prendas del Empeño</h2>
+            <p>Agrega las prendas que se van a empeñar</p>
+          </div>
+        </div>
+
+        <div formArrayName="prendas">
+          <div *ngFor="let prenda of prendasFormArray.controls; let i = index" 
+               [formGroupName]="i" 
+               class="prenda-item">
+            <div class="prenda-header">
+              <h3>Prenda {{ i + 1 }}</h3>
+              <button 
+                type="button" 
+                class="btn-remove-prenda" 
+                (click)="removePrenda(i)"
+                [disabled]="prendasFormArray.length === 1"
+              >
+                🗑️ Eliminar
+              </button>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Descripción *</label>
+                <input 
+                  type="text" 
+                  formControlName="descripcion"
+                  class="form-input"
+                  [class.invalid]="isPrendaFieldInvalid(i, 'descripcion')"
+                  placeholder="Ej: Anillo de oro 18k"
+                />
+                <div class="error-message" *ngIf="isPrendaFieldInvalid(i, 'descripcion')">
+                  La descripción es requerida
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Peso (gramos) *</label>
+                <input 
+                  type="number" 
+                  formControlName="peso_gramos"
+                  class="form-input"
+                  [class.invalid]="isPrendaFieldInvalid(i, 'peso_gramos')"
+                  placeholder="0.0"
+                  step="0.1"
+                  min="0"
+                />
+                <div class="error-message" *ngIf="isPrendaFieldInvalid(i, 'peso_gramos')">
+                  El peso es requerido y debe ser mayor a 0
+                </div>
+              </div>
+
+
+
+              <div class="form-group">
+                <label class="form-label">Valor Estimado *</label>
+                <input 
+                  type="number" 
+                  formControlName="valor_estimado"
+                  class="form-input"
+                  [class.invalid]="isPrendaFieldInvalid(i, 'valor_estimado')"
+                  placeholder="0"
+                  min="1"
+                  (input)="onPrendaValueChange()"
+                />
+                <div class="error-message" *ngIf="isPrendaFieldInvalid(i, 'valor_estimado')">
+                  El valor estimado es requerido y debe ser mayor a 0
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-add-prenda" (click)="addPrenda()">
+          ➕ Agregar Otra Prenda
+        </button>
+      </div>
+
+      <!-- Sección Financiera -->
+      <div class="form-section">
+        <div class="section-header">
+          <div class="section-icon">💰</div>
+          <div class="section-info">
+            <h2>Información Financiera</h2>
+            <p>Define los términos del préstamo</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Monto a Prestar *</label>
+            <input 
+              type="number" 
+              formControlName="monto_prestado"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('monto_prestado')"
+              placeholder="0"
+              min="1"
+              (input)="calculateTotals()"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('monto_prestado')">
+              El monto prestado es requerido y debe ser mayor a 0
+            </div>
+            <div class="input-hint">Valor total del préstamo</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Interés Mensual (%) *</label>
+            <input 
+              type="number" 
+              formControlName="interes_mensual"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('interes_mensual')"
+              placeholder="0.0"
+              step="0.1"
+              min="0"
+              max="100"
+              (input)="calculateTotals()"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('interes_mensual')">
+              El interés mensual es requerido
+            </div>
+            <div class="input-hint">Porcentaje de interés mensual</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fecha de Vencimiento *</label>
+            <input 
+              type="date" 
+              formControlName="fecha_vencimiento"
+              class="form-input"
+              [class.invalid]="isFieldInvalid('fecha_vencimiento')"
+              [min]="minDate"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('fecha_vencimiento')">
+              La fecha de vencimiento es requerida y debe ser futura
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="isEditMode">
+            <label class="form-label">Estado</label>
+            <select formControlName="estado" class="form-select">
+              <option *ngFor="let estado of estados" [value]="estado.value">
+                {{ estado.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Resumen Financiero -->
+        <div class="financial-summary">
+          <h3>📊 Resumen Financiero</h3>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="summary-label">Valor Total Prendas</span>
+              <span class="summary-value">{{ formatCurrency(getTotalPrendasValue()) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Monto a Prestar</span>
+              <span class="summary-value">{{ formatCurrency(empenoForm.get('monto_prestado')?.value || 0) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Interés Calculado</span>
+              <span class="summary-value">{{ formatCurrency(getInteresAmount()) }}</span>
+            </div>
+            <div class="summary-item total">
+              <span class="summary-label">Total a Recibir</span>
+              <span class="summary-value">{{ formatCurrency(getTotalAmount()) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="goBack()" [disabled]="loading">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="btn-submit" 
+          [disabled]="empenoForm.invalid || loading"
+        >
+          <div class="btn-content" *ngIf="!loading">
+            <span class="icon">💾</span>
+            {{ isEditMode ? 'Actualizar Empeño' : 'Crear Empeño' }}
+          </div>
+          <div class="btn-content" *ngIf="loading">
+            <div class="btn-spinner"></div>
+            {{ isEditMode ? 'Actualizando...' : 'Creando...' }}
+          </div>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

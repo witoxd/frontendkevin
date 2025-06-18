@@ -1,0 +1,153 @@
+<div class="cliente-form-container">
+  <div class="header">
+    <div class="header-content">
+      <div class="title-section">
+        <button class="back-btn" (click)="cancel()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5"></path>
+            <path d="M12 19l-7-7 7-7"></path>
+          </svg>
+          Volver
+        </button>
+        <div class="title-info">
+          <h1>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</h1>
+          <p>{{ isEditMode ? 'Actualiza la información del cliente' : 'Completa los datos del nuevo cliente' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>{{ isEditMode ? 'Cargando datos del cliente...' : 'Procesando...' }}</p>
+    </div>
+
+    <!-- Form -->
+    <div class="form-container" *ngIf="!loading">
+      <form [formGroup]="clienteForm" (ngSubmit)="onSubmit()" class="cliente-form">
+        <!-- Success Message -->
+        <div class="alert alert-success" *ngIf="successMessage">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"></polyline>
+          </svg>
+          {{ successMessage }}
+        </div>
+
+        <!-- Error Message -->
+        <div class="alert alert-error" *ngIf="errorMessage">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          {{ errorMessage }}
+        </div>
+
+        <div class="form-grid">
+          <!-- Nombre -->
+          <div class="form-group">
+            <label for="nombre">Nombre *</label>
+            <input
+              type="text"
+              id="nombre"
+              formControlName="nombre"
+              placeholder="Ingresa el nombre"
+              [class.error]="hasError('nombre', 'required') || hasError('nombre', 'minlength')"
+            >
+            <div class="error-message" *ngIf="hasError('nombre', 'required')">
+              El nombre es requerido
+            </div>
+            <div class="error-message" *ngIf="hasError('nombre', 'minlength')">
+              El nombre debe tener al menos 2 caracteres
+            </div>
+          </div>
+
+
+          <!-- Cédula -->
+          <div class="form-group">
+            <label for="documento">documento</label> 
+            <input
+              type="text"
+              id="documento"
+              formControlName="documento"
+              placeholder="Ingresa la documento"
+              [class.error]="hasError('documento', 'pattern')"
+            >
+            <div class="error-message" *ngIf="hasError('documento', 'pattern')">
+              La documento debe contener solo números (7-12 dígitos)
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">correo *</label>
+            <input
+              type="correo"
+              id="correo"
+              formControlName="correo"
+              placeholder="ejemplo@correo.com"
+              [class.error]="hasError('correo', 'required') || hasError('correo', 'correo')"
+            >
+            <div class="error-message" *ngIf="hasError('correo', 'required')">
+              El correo es requerido
+            </div>
+            <div class="error-message" *ngIf="hasError('correo', 'correo')">
+              Ingresa un correo válido
+            </div>
+          </div>
+
+          <!-- Teléfono -->
+          <div class="form-group">
+            <label for="telefono">Teléfono *</label>
+            <input
+              type="tel"
+              id="telefono"
+              formControlName="telefono"
+              placeholder="Ingresa el teléfono"
+              [class.error]="hasError('telefono', 'required') || hasError('telefono', 'pattern')"
+            >
+            <div class="error-message" *ngIf="hasError('telefono', 'required')">
+              El teléfono es requerido
+            </div>
+            <div class="error-message" *ngIf="hasError('telefono', 'pattern')">
+              El teléfono debe contener solo números (7-15 dígitos)
+            </div>
+          </div>
+
+          <!-- Dirección -->
+          <div class="form-group full-width">
+            <label for="direccion">Dirección *</label>
+            <textarea
+              id="direccion"
+              formControlName="direccion"
+              placeholder="Ingresa la dirección completa"
+              rows="3"
+              [class.error]="hasError('direccion', 'required') || hasError('direccion', 'minlength')"
+            ></textarea>
+            <div class="error-message" *ngIf="hasError('direccion', 'required')">
+              La dirección es requerida
+            </div>
+            <div class="error-message" *ngIf="hasError('direccion', 'minlength')">
+              La dirección debe tener al menos 5 caracteres
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="loading">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="clienteForm.invalid || loading">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!loading">
+              <polyline points="20,6 9,17 4,12"></polyline>
+            </svg>
+            <div class="spinner-small" *ngIf="loading"></div>
+            {{ isEditMode ? 'Actualizar Cliente' : 'Crear Cliente' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

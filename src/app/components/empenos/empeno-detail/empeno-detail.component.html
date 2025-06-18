@@ -1,0 +1,209 @@
+<div class="empeno-detail-container">
+  <!-- Header -->
+  <div class="header">
+    <button class="btn-back" (click)="goBack()">
+      <span class="icon">←</span>
+      Volver a Empeños
+    </button>
+    <h1 class="title" *ngIf="empeno">Empeño #{{ empeno.id }}</h1>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando detalles del empeño...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h3>Error al cargar empeño</h3>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadEmpenoDetails(empeno?.id || 0)">Reintentar</button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error && empeno" class="content">
+    <!-- Estado y Alertas -->
+    <div class="status-section">
+      <div class="status-card">
+        <span class="estado-badge" [ngClass]="getEstadoClass(empeno.estado)">
+          {{ getEstadoLabel(empeno.estado) }}
+        </span>
+        <div *ngIf="isVencido() && empeno.estado === 'activo'" class="alert-vencido">
+          ⚠️ Este empeño está vencido desde hace {{ abs(getDaysUntilExpiry(empeno.fecha_vencimiento)) }} días
+        </div>
+        <div *ngIf="!isVencido() && empeno.estado === 'activo'" class="alert-activo">
+          ⏰ Vence en {{ getDaysUntilExpiry(empeno.fecha_vencimiento) }} días
+        </div>
+      </div>
+    </div>
+
+    <!-- Información Principal -->
+    <div class="main-info">
+      <div class="info-card">
+        <h2 class="card-title">💰 Información Financiera</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Monto Prestado:</span>
+            <span class="value amount-prestado">{{ formatCurrency(empeno.monto_prestado) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Interés:</span>
+            <span class="value">{{ empeno.interes_mensual }}%</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Monto Total a Pagar:</span>
+            <span class="value amount-total">{{ formatCurrency(calculateTotalAmount()) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Ganancia por Interés:</span>
+            <span class="value amount-interes">{{ formatCurrency(empeno.monto_prestado * empeno.interes_mensual / 100) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h2 class="card-title">📅 Información de Fechas</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Fecha de Creación:</span>
+            <span class="value">{{ formatDate(empeno.createdAt!) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Fecha de Vencimiento:</span>
+            <span class="value" [ngClass]="{ 'vencido': isVencido() }">
+              {{ formatDate(empeno.fecha_vencimiento) }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">Última Actualización:</span>
+            <span class="value">{{ formatDate(empeno.updatedAt!) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del Cliente -->
+    <div class="related-info">
+      <div class="info-card cliente-card" *ngIf="cliente">
+        <h2 class="card-title">👤 Información del Cliente</h2>
+        <div class="cliente-info">
+          <div class="cliente-avatar">
+            <span class="avatar-text">{{ cliente.nombre.charAt(0).toUpperCase() }}</span>
+          </div>
+          <div class="cliente-details">
+            <div class="info-item">
+              <span class="label">Nombre:</span>
+              <span class="value">{{ cliente.nombre }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Documento:</span>
+              <span class="value">{{ cliente.documento }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Teléfono:</span>
+              <span class="value">{{ cliente.telefono }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">correo:</span>
+              <span class="value">{{ cliente.correo }}</span>
+            </div>
+          </div>
+          <button class="btn-view-cliente" (click)="goToCliente()">
+            Ver Cliente Completo
+          </button>
+        </div>
+      </div>
+
+      <!-- Información de las Prendas -->
+      <div class="info-card prendas-card">
+        <h2 class="card-title">💎 Prendas Empeñadas ({{ getPrendasCount() }})</h2>
+        
+        <!-- Loading Prendas -->
+        <div class="loading-prendas" *ngIf="loadingPrendas">
+          <div class="spinner-small"></div>
+          <span>Cargando prendas...</span>
+        </div>
+
+        <!-- Prendas List -->
+        <div class="prendas-list" *ngIf="!loadingPrendas && prendas.length > 0">
+          <div class="prenda-item" *ngFor="let prenda of prendas; let i = index">
+            <div class="prenda-header">
+              <h4>Prenda {{ i + 1 }}</h4>
+              <span class="prenda-estado" [ngClass]="'estado-' + prenda.estado">
+                {{ prenda.estado | titlecase }}
+              </span>
+            </div>
+            
+            <div class="prenda-details">
+              <div class="detail-row">
+                <span class="detail-label">ID:</span>
+                <span class="detail-value">#{{ prenda.id }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Descripción:</span>
+                <span class="detail-value">{{ prenda.descripcion }}</span>
+              </div>
+              <div class="detail-row" *ngIf="prenda.peso">
+                <span class="detail-label">Peso:</span>
+                <span class="detail-value">{{ prenda.peso }}g</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Valor Estimado:</span>
+                <span class="detail-value amount-estimado">{{ formatCurrency(prenda.valor_estimado) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen de Prendas -->
+          <div class="prendas-summary">
+            <h4>📊 Resumen de Prendas</h4>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">Total Prendas</span>
+                <span class="summary-value">{{ getPrendasCount() }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Valor Total</span>
+                <span class="summary-value highlight">{{ formatCurrency(getTotalPrendasValue()) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Prendas -->
+        <div class="no-prendas" *ngIf="!loadingPrendas && prendas.length === 0">
+          <div class="no-prendas-icon">💎</div>
+          <h4>No hay prendas registradas</h4>
+          <p>Este empeño no tiene prendas asociadas</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de Transacción -->
+    <div class="transaction-summary">
+      <div class="summary-card">
+        <h2 class="card-title">📊 Resumen de Transacción</h2>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">Valor de las Prendas</span>
+            <span class="summary-value">{{ formatCurrency(getTotalPrendasValue()) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Monto Prestado</span>
+            <span class="summary-value">{{ formatCurrency(empeno.monto_prestado) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Porcentaje Prestado</span>
+            <span class="summary-value">{{ getTotalPrendasValue() > 0 ? ((empeno.monto_prestado / getTotalPrendasValue()) * 100).toFixed(1) : 0 }}%</span>
+          </div>
+          <div class="summary-item highlight">
+            <span class="summary-label">Total a Recibir</span>
+            <span class="summary-value">{{ formatCurrency(calculateTotalAmount()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

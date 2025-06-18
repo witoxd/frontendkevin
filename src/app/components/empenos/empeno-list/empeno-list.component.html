@@ -1,0 +1,146 @@
+<div class="empeno-list-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goToDashboard()">
+        <span class="icon">🏠</span>
+        Dashboard
+      </button>
+      <h1 class="title">Gestión de Empeños</h1>
+      <button class="btn-primary" (click)="goToCreate()">
+        <span class="icon">➕</span>
+        Nuevo Empeño
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <div class="search-container">
+      <input
+        type="text"
+        placeholder="Buscar por ID de empeño o cliente..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    
+    <select [(ngModel)]="selectedEstado" (change)="onEstadoChange()" class="filter-select">
+      <option *ngFor="let estado of estados" [value]="estado.value">
+        {{ estado.label }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando empeños...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h3>Error al cargar empeños</h3>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadEmpenos()">Reintentar</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && filteredEmpenos.length === 0 && empenos.length === 0" class="empty-container">
+    <div class="empty-icon">💰</div>
+    <h3>No hay empeños registrados</h3>
+    <p>Comienza creando tu primer empeño</p>
+    <button class="btn-primary" (click)="goToCreate()">Crear Empeño</button>
+  </div>
+
+  <!-- No Results State -->
+  <div *ngIf="!loading && !error && filteredEmpenos.length === 0 && empenos.length > 0" class="empty-container">
+    <div class="empty-icon">🔍</div>
+    <h3>No se encontraron empeños</h3>
+    <p>Intenta ajustar los filtros de búsqueda</p>
+  </div>
+
+  <!-- Empeños Grid -->
+  <div *ngIf="!loading && !error && filteredEmpenos.length > 0" class="empenos-grid">
+    <div *ngFor="let empeno of filteredEmpenos" class="empeno-card">
+      <div class="card-header">
+        <div class="empeno-id">Empeño #{{ empeno.id }}</div>
+        <span class="estado-badge" [ngClass]="getEstadoClass(empeno.estado)">
+          {{ getEstadoLabel(empeno.estado) }}
+        </span>
+      </div>
+      
+      <div class="card-body">
+        <div class="info-row">
+          <span class="label">Cliente ID:</span>
+          <span class="value">{{ empeno.cliente_id }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Monto Prestado:</span>
+          <span class="value amount">{{ formatCurrency(empeno.monto_prestado) }}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Interés:</span>
+          <span class="value">{{ empeno.interes_mensual }}%</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Fecha Vencimiento:</span>
+          <span class="value" [ngClass]="{ 'vencido': isVencido(empeno.fecha_vencimiento) }">
+            {{ formatDate(empeno.fecha_vencimiento) }}
+          </span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Prenda ID:</span>
+          <span class="value">{{ empeno.prenda_id }}</span>
+        </div>
+      </div>
+      
+      <div class="card-actions">
+        <button class="btn-view" (click)="goToDetail(empeno.id)" title="Ver detalles">
+          👁️ Ver Detalles
+        </button>
+        <button 
+          class="btn-abono" 
+          (click)="goToAbono(empeno.id)" 
+          title="Registrar abono" 
+          *ngIf="empeno.estado === 'activo'"
+        >
+          💵 Registrar Abono
+        </button>
+      </div>
+      
+      <div class="card-footer">
+        <span class="created-date">
+          Creado: {{ formatDate(empeno.createdAt!) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Summary -->
+  <div *ngIf="hasEmpenos" class="stats-summary">
+    <div class="stat-item">
+      <span class="stat-number">{{ empenos.length }}</span>
+      <span class="stat-label">Total Empeños</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ empenosActivos }}</span>
+      <span class="stat-label">Activos</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ empenosRecuperados }}</span>
+      <span class="stat-label">Recuperados</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ empenosPerdidos }}</span>
+      <span class="stat-label">Perdidos</span>
+    </div>
+  </div>
+</div>

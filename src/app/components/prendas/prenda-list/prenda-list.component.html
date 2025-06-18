@@ -1,0 +1,170 @@
+<div class="prenda-list-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goToDashboard()">
+        <span class="icon">🏠</span>
+        Dashboard
+      </button>
+      <h1 class="title">Listado de Prendas</h1>
+      <!-- Funcion no implementada <button class="btn-primary" (click)="goToCreate()">
+        <span class="icon">➕</span>
+        Nueva Prenda
+      </button> La API está lista para consumir, incluso el servicio esta listo, falta el codigo de ejecucion, 
+      considerado imnesesario ya que esta pagina solo muestra el listado de las prendas -->
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <div class="search-container">
+      <input
+        type="text"
+        placeholder="Buscar por descripción, cliente, documento o ID..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    
+    <select [(ngModel)]="selectedEstado" (change)="onEstadoChange()" class="filter-select">
+      <option *ngFor="let estado of estados" [value]="estado.value">
+        {{ estado.label }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando prendas...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <div class="error-icon">⚠️</div>
+    <h3>Error al cargar prendas</h3>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadPrendas()">Reintentar</button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && filteredPrendas.length === 0 && prendas.length === 0" class="empty-container">
+    <div class="empty-icon">💎</div>
+    <h3>No hay prendas registradas</h3>
+    <p>Comienza registrando la primera prenda</p>
+    <button class="btn-primary" (click)="goToCreate()">Registrar Prenda</button>
+  </div>
+
+  <!-- No Results State -->
+  <div *ngIf="!loading && !error && filteredPrendas.length === 0 && prendas.length > 0" class="empty-container">
+    <div class="empty-icon">🔍</div>
+    <h3>No se encontraron prendas</h3>
+    <p>Intenta ajustar los filtros de búsqueda</p>
+  </div>
+
+  <!-- Prendas Grid -->
+  <div *ngIf="!loading && !error && filteredPrendas.length > 0" class="prendas-grid">
+    <div *ngFor="let prenda of filteredPrendas" class="prenda-card">
+      <div class="card-header">
+        <div class="prenda-id">Prenda #{{ prenda.id }}</div>
+        <span class="estado-badge" [ngClass]="getEstadoClass(prenda.estado)">
+          {{ getEstadoLabel(prenda.estado) }}
+        </span>
+      </div>
+      
+      <div class="card-body">
+        <div class="prenda-main-info">
+          <h3 class="prenda-descripcion">{{ prenda.descripcion }}</h3>
+          <div class="prenda-valor">{{ formatCurrency(prenda.valor_estimado) }}</div>
+        </div>
+
+        <div class="prenda-details">
+          <div class="detail-row" *ngIf="prenda.peso">
+            <span class="detail-label">Peso:</span>
+            <span class="detail-value">{{ formatWeight(prenda.peso) }}</span>
+          </div>
+        
+
+          <div class="detail-row" *ngIf="prenda.empeno_id">
+            <span class="detail-label">Empeño:</span>
+            <span class="detail-value empeno-link" (click)="goToEmpeno(prenda.empeno_id!)">
+              #{{ prenda.empeno_id }}
+            </span>
+          </div>
+
+          <div class="detail-row" *ngIf="prenda.cliente">
+            <span class="detail-label">Cliente:</span>
+            <span class="detail-value cliente-link" (click)="goToCliente(prenda.cliente!.id)">
+              {{ prenda.cliente.nombre }}
+            </span>
+          </div>
+
+          <div class="detail-row" *ngIf="prenda.cliente">
+            <span class="detail-label">Documento:</span>
+            <span class="detail-value">{{ prenda.cliente.documento }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- <div class="card-actions" Botones no implementados, se pueden implementar en el futuro la API ya esta lista para ser consumida aunque no se si cumpla con el requerimiento del enunciado>
+        <button class="btn-view" (click)="goToDetail(prenda.id)" title="Ver detalles">
+          👁️ Ver
+        </button>
+        <button class="btn-edit" (click)="goToEdit(prenda.id)" title="Editar prenda">
+          ✏️ Editar
+        </button>
+        <button 
+          class="btn-perdida" 
+          (click)="markAsPerdida(prenda.id)" 
+          title="Marcar como perdida"
+          *ngIf="prenda.estado !== 'perdida' && prenda.estado !== 'vendida'"
+        >
+          ❌ Perdida
+        </button>
+        <button class="btn-delete" (click)="deletePrenda(prenda.id)" title="Eliminar prenda">
+          🗑️ Eliminar
+        </button>
+      </div> -->
+      
+      <div class="card-footer">
+        <span class="created-date">
+          Registrada: {{ formatDate(prenda.createdAt!) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+
+  <div *ngIf="hasPrendas" class="stats-summary">
+    <div class="stat-item">
+      <span class="stat-number">{{ totalPrendas }}</span>
+      <span class="stat-label">Total Prendas</span>
+    </div>
+    <div class="stat-item disponible">
+      <span class="stat-number">{{ prendasDisponibles }}</span>
+      <span class="stat-label">Disponibles</span>
+    </div>
+    <div class="stat-item empenada">
+      <span class="stat-number">{{ prendasEmpenadas }}</span>
+      <span class="stat-label">Empeñadas</span>
+    </div>
+    <!-- <div class="stat-item vendida" Funcion no implemntada, falta algunas cosas mas para poder impleemntar, solo arrojara un error>
+      <span class="stat-number">{{ prendasVendidas }}</span>
+      <span class="stat-label">Vendidas</span>
+    </div>
+    <div class="stat-item perdida" Funcion no implemntada, falta algunas cosas mas para poder impleemtar, solo arrojara un error>
+      <span class="stat-number">{{ prendasPerdidas }}</span>
+      <span class="stat-label">Perdidas</span>
+    </div> -->
+    <div class="stat-item total-valor">
+      <span class="stat-number">{{ formatCurrency(valorTotalPrendas) }}</span>
+      <span class="stat-label">Valor Total</span>
+    </div>
+    <!-- <div class="stat-item valor-disponible" >
+      <span class="stat-number">{{ formatCurrency(valorPrendasDisponibles) }}</span>
+      <span class="stat-label">Valor Disponible</span>
+    </div> -->
+  </div>
+</div>

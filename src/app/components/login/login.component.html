@@ -1,0 +1,93 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">
+        <div class="logo-icon">🔐</div>
+        <h1>OroSeguro</h1>
+      </div>
+      <h2>Bienvenido de nuevo</h2>
+      <p>Ingresa tus credenciales para continuar</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="form-input"
+            [class.error]="email?.invalid && email?.touched"
+            [class.filled]="email?.value"
+            placeholder=" "
+            autocomplete="email"
+          />
+          <label for="email" class="form-label">Correo electrónico</label>
+          <div class="input-icon">📧</div>
+        </div>
+        <div class="error-message" *ngIf="getFieldError('email')">
+          {{ getFieldError('email') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="form-input"
+            [class.error]="password?.invalid && password?.touched"
+            [class.filled]="password?.value"
+            placeholder=" "
+            autocomplete="current-password"
+          />
+          <label for="password" class="form-label">Contraseña</label>
+          <div class="input-icon">🔒</div>
+        </div>
+        <div class="error-message" *ngIf="getFieldError('password')">
+          {{ getFieldError('password') }}
+        </div>
+      </div>
+
+      <div class="error-message global-error" *ngIf="errorMessage">
+        <div class="error-icon">⚠️</div>
+        {{ errorMessage }}
+      </div>
+
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="isLoading || loginForm.invalid"
+        [class.loading]="isLoading"
+      >
+        <span class="btn-content" *ngIf="!isLoading">
+          <span class="btn-icon">→</span>
+          Iniciar Sesión
+        </span>
+        <span class="btn-content loading-content" *ngIf="isLoading">
+          <span class="spinner"></span>
+          Iniciando sesión...
+        </span>
+      </button>
+    </form>
+
+    <div class="divider">
+      <span>o</span>
+    </div>
+
+    <div class="login-footer">
+      <p>¿No tienes una cuenta?</p>
+      <a routerLink="/register" class="register-link">
+        Crear cuenta nueva
+        <span class="link-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="background-decoration">
+    <div class="decoration-circle circle-1"></div>
+    <div class="decoration-circle circle-2"></div>
+    <div class="decoration-circle circle-3"></div>
+  </div>
+</div>
