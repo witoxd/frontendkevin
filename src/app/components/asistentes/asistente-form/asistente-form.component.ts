@@ -1,8 +1,8 @@
-import { Component,  OnInit } from "@angular/core"
+import { Component, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import { ReactiveFormsModule,  FormBuilder,  FormGroup, Validators } from "@angular/forms"
-import  { Router, ActivatedRoute } from "@angular/router"
-import  { AsistenteService } from "../../../services/asistente.service"
+import { ReactiveFormsModule, type FormBuilder, type FormGroup, Validators } from "@angular/forms"
+import type { Router, ActivatedRoute } from "@angular/router"
+import type { AsistenteService } from "../../../services/asistente.service"
 
 @Component({
   selector: "app-asistente-form",

@@ -1,9 +1,9 @@
-import { Component,  OnInit } from "@angular/core"
+import { Component, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import { RouterModule,  Router } from "@angular/router"
+import { RouterModule, type Router } from "@angular/router"
 import { FormsModule } from "@angular/forms"
-import  { AsistenteService } from "../../../services/asistente.service"
-import  { Asistente } from "../../../models/asistente.model"
+import type { AsistenteService } from "../../../services/asistente.service"
+import type { Asistente } from "../../../models/asistente.model"
 
 @Component({
   selector: "app-asistente-list",

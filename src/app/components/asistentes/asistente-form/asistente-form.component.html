@@ -1,143 +1,110 @@
-<div class="asistente-form-container">
+<div class="container">
   <div class="header">
-    <div class="header-content">
-      <div class="title-section">
-        <button class="back-btn" (click)="cancel()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5"></path>
-            <path d="M12 19l-7-7 7-7"></path>
-          </svg>
-          Volver
-        </button>
-        <div class="title-info">
-          <h1>{{ isEditMode ? 'Editar Asistente' : 'Nuevo Asistente' }}</h1>
-          <p>{{ isEditMode ? 'Actualiza la información del asistente' : 'Completa los datos del nuevo asistente' }}</p>
-        </div>
-      </div>
-    </div>
+    <button class="btn btn-secondary" (click)="cancel()">
+      ← Volver
+    </button>
+    <h1>{{ isEditMode ? 'Editar Asistente' : 'Nuevo Asistente' }}</h1>
   </div>
 
-  <div class="content">
-    <!-- Loading State -->
-    <div class="loading-state" *ngIf="loading">
-      <div class="spinner"></div>
-      <p>{{ isEditMode ? 'Cargando datos del asistente...' : 'Procesando...' }}</p>
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <p>{{ isEditMode ? 'Cargando datos...' : 'Procesando...' }}</p>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!loading" class="form-container">
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success">
+      {{ successMessage }}
     </div>
 
-    <!-- Form -->
-    <div class="form-container" *ngIf="!loading">
-      <form [formGroup]="asistenteForm" (ngSubmit)="onSubmit()" class="asistente-form">
-        <!-- Success Message -->
-        <div class="alert alert-success" *ngIf="successMessage">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20,6 9,17 4,12"></polyline>
-          </svg>
-          {{ successMessage }}
-        </div>
-
-        <!-- Error Message -->
-        <div class="alert alert-error" *ngIf="errorMessage">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          {{ errorMessage }}
-        </div>
-
-        <div class="form-grid">
-          <!-- Nombre -->
-          <div class="form-group">
-            <label for="nombre">Nombre *</label>
-            <input
-              type="text"
-              id="nombre"
-              formControlName="nombre"
-              placeholder="Ingresa el nombre"
-              [class.error]="hasError('nombre', 'required') || hasError('nombre', 'minlength')"
-            >
-            <div class="error-message" *ngIf="hasError('nombre', 'required')">
-              El nombre es requerido
-            </div>
-            <div class="error-message" *ngIf="hasError('nombre', 'minlength')">
-              El nombre debe tener al menos 2 caracteres
-            </div>
-          </div>
-
-          <!-- Teléfono -->
-          <div class="form-group">
-            <label for="telefono">Teléfono *</label>
-            <input
-              type="tel"
-              id="telefono"
-              formControlName="telefono"
-              placeholder="Ingresa el teléfono"
-              [class.error]="hasError('telefono', 'required') || hasError('telefono', 'pattern')"
-            >
-            <div class="error-message" *ngIf="hasError('telefono', 'required')">
-              El teléfono es requerido
-            </div>
-            <div class="error-message" *ngIf="hasError('telefono', 'pattern')">
-              El teléfono debe contener solo números (7-15 dígitos)
-            </div>
-          </div>
-
-          <!-- Edad -->
-          <div class="form-group">
-            <label for="edad">Edad *</label>
-            <input
-              type="number"
-              id="edad"
-              formControlName="edad"
-              placeholder="Ingresa la edad"
-              min="1"
-              max="120"
-              [class.error]="hasError('edad', 'required') || hasError('edad', 'min') || hasError('edad', 'max')"
-            >
-            <div class="error-message" *ngIf="hasError('edad', 'required')">
-              La edad es requerida
-            </div>
-            <div class="error-message" *ngIf="hasError('edad', 'min')">
-              La edad debe ser mayor a 0
-            </div>
-            <div class="error-message" *ngIf="hasError('edad', 'max')">
-              La edad debe ser menor a 121
-            </div>
-          </div>
-
-          <!-- ID Invitado -->
-          <div class="form-group">
-            <label for="invitado_id">ID Invitado *</label>
-            <input
-              type="number"
-              id="invitado_id"
-              formControlName="invitado_id"
-              placeholder="Ingresa el ID del invitado"
-              min="1"
-              [class.error]="hasError('invitado_id', 'required') || hasError('invitado_id', 'min')"
-            >
-            <div class="error-message" *ngIf="hasError('invitado_id', 'required')">
-              El ID del invitado es requerido
-            </div>
-            <div class="error-message" *ngIf="hasError('invitado_id', 'min')">
-              El ID del invitado debe ser mayor a 0
-            </div>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="loading">
-            Cancelar
-          </button>
-          <button type="submit" class="btn-primary" [disabled]="asistenteForm.invalid || loading">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="!loading">
-              <polyline points="20,6 9,17 4,12"></polyline>
-            </svg>
-            <div class="spinner-small" *ngIf="loading"></div>
-            {{ isEditMode ? 'Actualizar Asistente' : 'Crear Asistente' }}
-          </button>
-        </div>
-      </form>
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+      {{ errorMessage }}
     </div>
+
+    <form [formGroup]="asistenteForm" (ngSubmit)="onSubmit()" class="form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="nombre">Nombre *</label>
+          <input
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            placeholder="Ingresa el nombre"
+            [class.error]="hasError('nombre', 'required') || hasError('nombre', 'minlength')"
+          >
+          <div class="error-message" *ngIf="hasError('nombre', 'required')">
+            El nombre es requerido
+          </div>
+          <div class="error-message" *ngIf="hasError('nombre', 'minlength')">
+            El nombre debe tener al menos 2 caracteres
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono *</label>
+          <input
+            type="tel"
+            id="telefono"
+            formControlName="telefono"
+            placeholder="Ingresa el teléfono"
+            [class.error]="hasError('telefono', 'required') || hasError('telefono', 'pattern')"
+          >
+          <div class="error-message" *ngIf="hasError('telefono', 'required')">
+            El teléfono es requerido
+          </div>
+          <div class="error-message" *ngIf="hasError('telefono', 'pattern')">
+            El teléfono debe contener solo números (7-15 dígitos)
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="edad">Edad *</label>
+          <input
+            type="number"
+            id="edad"
+            formControlName="edad"
+            placeholder="Ingresa la edad"
+            min="1"
+            max="120"
+            [class.error]="hasError('edad', 'required') || hasError('edad', 'min') || hasError('edad', 'max')"
+          >
+          <div class="error-message" *ngIf="hasError('edad', 'required')">
+            La edad es requerida
+          </div>
+          <div class="error-message" *ngIf="hasError('edad', 'min') || hasError('edad', 'max')">
+            La edad debe estar entre 1 y 120 años
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="invitado_id">ID Invitado *</label>
+          <input
+            type="number"
+            id="invitado_id"
+            formControlName="invitado_id"
+            placeholder="Ingresa el ID del invitado"
+            min="1"
+            [class.error]="hasError('invitado_id', 'required') || hasError('invitado_id', 'min')"
+          >
+          <div class="error-message" *ngIf="hasError('invitado_id', 'required')">
+            El ID del invitado es requerido
+          </div>
+          <div class="error-message" *ngIf="hasError('invitado_id', 'min')">
+            El ID del invitado debe ser mayor a 0
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="asistenteForm.invalid || loading">
+          {{ isEditMode ? 'Actualizar' : 'Crear' }} Asistente
+        </button>
+      </div>
+    </form>
   </div>
 </div>
