@@ -1,8 +1,8 @@
-import { Component, type OnInit } from "@angular/core"
+import { Component,  OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
-import { type ActivatedRoute, type Router, RouterModule } from "@angular/router"
-import type { AsistenteService } from "../../../services/asistente.service"
-import type { Asistente } from "../../../models/asistente.model"
+import {  ActivatedRoute,  Router, RouterModule } from "@angular/router"
+import  { AsistenteService } from "../../../services/asistente.service"
+import  { Asistente } from "../../../models/asistente.model"
 
 @Component({
   selector: "app-asistente-detail",
